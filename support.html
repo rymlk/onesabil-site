@@ -17,20 +17,38 @@
         <h2>Besoin d'aide ?</h2>
         <p>
           Pour toute question concernant OneSabil, un probleme technique, une demande liee au compte ou une suggestion
-          d'amelioration, contactez l'equipe de support.
+          d'amelioration, contactez l'equipe de support avec le formulaire ci-dessous.
         </p>
+      </section>
+
+      <section class="card" id="contact">
+        <h2>Envoyer un message</h2>
         <p>
-          Email de contact :
-          <a href="mailto:contact.malkirayane@gmail.com">contact.malkirayane@gmail.com</a>
+          Utilisez ce formulaire pour envoyer une recommandation, signaler un probleme ou poser une question sur
+          OneSabil.
         </p>
-        <p>
-          <a
-            class="button"
-            href="mailto:contact.malkirayane@gmail.com?subject=Recommandation%20OneSabil&body=Salam%2C%0A%0AJe%20souhaite%20envoyer%20une%20recommandation%20pour%20OneSabil%20%3A%0A%0A"
-          >
-            Envoyer une recommandation
-          </a>
-        </p>
+
+        <form class="contact-form" id="contact-form">
+          <label>
+            Votre email
+            <input type="email" name="email" autocomplete="email" required placeholder="vous@example.com" />
+          </label>
+
+          <label>
+            Sujet
+            <input type="text" name="subject" required maxlength="120" placeholder="Recommandation OneSabil" />
+          </label>
+
+          <label>
+            Message
+            <textarea name="message" required rows="7" maxlength="4000" placeholder="Votre message..."></textarea>
+          </label>
+
+          <input class="honeypot" type="text" name="company" tabindex="-1" autocomplete="off" />
+
+          <button class="button" type="submit">Envoyer</button>
+          <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+        </form>
       </section>
 
       <section class="card">
@@ -51,5 +69,40 @@
         </p>
       </section>
     </main>
+
+    <script>
+      const form = document.querySelector('#contact-form');
+      const status = document.querySelector('#form-status');
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        status.textContent = 'Envoi en cours...';
+
+        const button = form.querySelector('button');
+        button.disabled = true;
+
+        try {
+          const payload = Object.fromEntries(new FormData(form).entries());
+          const response = await fetch('/api/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Impossible d envoyer le message.');
+          }
+
+          form.reset();
+          status.textContent = 'Message envoye. Merci pour votre retour.';
+        } catch (error) {
+          status.textContent = error.message || 'Impossible d envoyer le message.';
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
   </body>
 </html>
